@@ -413,7 +413,7 @@ class Train:
                 # We use bfloat16 because it has a larger dynamic range than float16
                 # and it seems to remove the need for doing grad scaling, which is very
                 # annoying to set up in the context of multiple backward passes.
-                with th.autocast(self.dist.device.type, dtype=th.bfloat16):
+                with th.autocast(self.dist.device.type, dtype=th.float16):
                     logits = shift_preds(state.lens(h, idx=i), shift)
 
                     if self.loss == LossChoice.CE:

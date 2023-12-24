@@ -15,6 +15,9 @@ import transformers as tr
 from torch import nn
 from transformers import models
 
+##Hacky way to have a mamba model
+from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel
+
 
 def get_value_for_key(obj: Any, key: str) -> Any:
     """Get a value using `__getitem__` if `key` is numeric and `getattr` otherwise."""
@@ -114,6 +117,8 @@ def get_final_norm(model: Model) -> Norm:
         final_layer_norm = base_model.ln_f
     elif isinstance(base_model, models.llama.modeling_llama.LlamaModel):
         final_layer_norm = base_model.norm
+    elif isinstance(base_model, MambaLMHeadModel):
+       final_layer_norm = base_model.backbone.norm_f
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
 
@@ -159,6 +164,8 @@ def get_transformer_layers(model: Model) -> tuple[str, th.nn.ModuleList]:
         path_to_layers += ["h"]
     elif isinstance(base_model, models.llama.modeling_llama.LlamaModel):
         path_to_layers += ["layers"]
+    elif isinstance(base_model, MambaLMHeadModel):
+       path_to_layers += ["backbone.layers"]
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
 
