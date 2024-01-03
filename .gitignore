@@ -1,12 +1,16 @@
 Data/
 notebooks/memorization.ipynb
+notebooks/future
+notebooks/negative
+notebooks/next
+notebooks/output
 .ruff_cache
 lens/
 .cvsignore
 wandb/
 .vscode/tasks.json
-
-
+val.jsonl
+my_lenses/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
