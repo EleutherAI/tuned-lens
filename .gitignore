@@ -1,5 +1,9 @@
 Data/
 notebooks/memorization.ipynb
+notebooks/future
+notebooks/negative
+notebooks/next
+notebooks/output
 .ruff_cache
 lens/
 .cvsignore
