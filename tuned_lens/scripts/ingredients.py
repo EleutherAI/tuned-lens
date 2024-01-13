@@ -21,12 +21,16 @@ from torch.distributed.optim import ZeroRedundancyOptimizer
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torchdata import dataloader2, datapipes
 from transformers import (
+    AutoConfig,
     AutoModelForCausalLM,
     AutoTokenizer,
+    PretrainedConfig,
     PreTrainedModel,
     PreTrainedTokenizerBase,
     get_linear_schedule_with_warmup,
 )
+from tuned_lens.scripts.mamba_model import PreMambaConfig, MambaModel, MambaTokenizer
+
 from typing_extensions import Literal
 
 from tuned_lens.data import (
@@ -173,6 +177,10 @@ class Model:
             raise ValueError(f"Unknown precision: {self.precision}") from e
 
         with handle_name_conflicts():
+            AutoConfig.register("mamba", PreMambaConfig)
+            AutoModelForCausalLM.register(PreMambaConfig, MambaModel)
+            a = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
+            AutoTokenizer.register(PreMambaConfig, MambaTokenizer)
             model = AutoModelForCausalLM.from_pretrained(  # type: ignore
                 self.name,
                 device_map={"": device} if device is not None else None,
@@ -182,6 +190,7 @@ class Model:
                 torch_dtype=dtype,
                 local_files_only=must_use_cache,
             )
+
 
         assert isinstance(model, PreTrainedModel)
         model.eval()

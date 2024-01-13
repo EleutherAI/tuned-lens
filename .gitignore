@@ -9,8 +9,8 @@ lens/
 .cvsignore
 wandb/
 .vscode/tasks.json
-
-
+val.jsonl
+my_lens/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
