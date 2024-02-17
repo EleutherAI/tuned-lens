@@ -191,7 +191,6 @@ class Model:
                 local_files_only=must_use_cache,
             )
 
-
         assert isinstance(model, PreTrainedModel)
         model.eval()
         model.requires_grad_(False)
