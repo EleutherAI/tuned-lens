@@ -29,7 +29,6 @@ from transformers import (
     PreTrainedTokenizerBase,
     get_linear_schedule_with_warmup,
 )
-from tuned_lens.scripts.mamba_model import PreMambaConfig, MambaModel, MambaTokenizer
 
 from typing_extensions import Literal
 
@@ -177,10 +176,11 @@ class Model:
             raise ValueError(f"Unknown precision: {self.precision}") from e
 
         with handle_name_conflicts():
-            AutoConfig.register("mamba", PreMambaConfig)
-            AutoModelForCausalLM.register(PreMambaConfig, MambaModel)
-            a = AutoTokenizer.from_pretrained("EleutherAI/gpt-neox-20b")
-            AutoTokenizer.register(PreMambaConfig, MambaTokenizer)
+            if "mamba" in self.name :
+                from tuned_lens.model_patches.mamba_model import PreMambaConfig, MambaModel, MambaTokenizer
+                AutoConfig.register("mamba", PreMambaConfig)
+                AutoModelForCausalLM.register(PreMambaConfig, MambaModel)
+                AutoTokenizer.register(PreMambaConfig, MambaTokenizer)
             model = AutoModelForCausalLM.from_pretrained(  # type: ignore
                 self.name,
                 device_map={"": device} if device is not None else None,

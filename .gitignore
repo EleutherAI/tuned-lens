@@ -10,7 +10,7 @@ lens/
 wandb/
 .vscode/tasks.json
 val.jsonl
-my_lens/
+my_lenses/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
