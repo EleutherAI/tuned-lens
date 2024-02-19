@@ -43,7 +43,6 @@ class MambaModel(PreTrainedModel):
 
     def hook_intermediate(self):
         activation_hook = self.activation_hook
-        self.model.backbone.embedding.register_forward_hook(activation_hook)
         for layer in self.model.backbone.layers:
             layer.register_forward_hook(activation_hook)
 

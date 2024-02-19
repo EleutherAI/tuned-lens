@@ -90,6 +90,7 @@ def load_lens_artifacts(
 
     resource_folder = "/".join((subfolder, resource_id))
     try:
+        print(ckpt_file, repo_id, repo_type,revision,resource_folder, cache_dir)
         params_path = hf_hub_download(
             filename=ckpt_file,
             repo_id=repo_id,
@@ -97,6 +98,7 @@ def load_lens_artifacts(
             revision=revision,
             subfolder=resource_folder,
             cache_dir=cache_dir,
+            force_download=True
         )
 
         config_path = hf_hub_download(
@@ -106,6 +108,7 @@ def load_lens_artifacts(
             revision=revision,
             subfolder=resource_folder,
             cache_dir=cache_dir,
+            force_download=True
         )
     except EntryNotFoundError:
         available_lenses = available_lens_artifacts(
