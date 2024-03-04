@@ -11,8 +11,9 @@ wandb/
 .vscode/tasks.json
 val.jsonl
 my_lenses/
-my_lens/
+
 train_lenses
+results
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

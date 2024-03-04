@@ -181,6 +181,10 @@ class Model:
                 AutoConfig.register("mamba", PreMambaConfig)
                 AutoModelForCausalLM.register(PreMambaConfig, MambaModel)
                 AutoTokenizer.register(PreMambaConfig, MambaTokenizer)
+            if "rwkv-5" in self.name :
+                model = AutoModelForCausalLM.from_pretrained(self.name, trust_remote_code=True).to(th.float32)
+                tokenizer = AutoTokenizer.from_pretrained(self.name, trust_remote_code=True)
+                return model, tokenizer
             model = AutoModelForCausalLM.from_pretrained(  # type: ignore
                 self.name,
                 device_map={"": device} if device is not None else None,

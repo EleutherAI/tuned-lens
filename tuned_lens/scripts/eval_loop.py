@@ -247,7 +247,7 @@ class Eval:
         root_dir.mkdir(exist_ok=True, parents=True)
 
         batches = []
-
+        std = []
         self.dist.barrier()
         logger.info(
             f"All processes initialized. Running evaluation on {total} batches."
@@ -292,7 +292,6 @@ class Eval:
             )
 
             batches.append(pytree_map(th.mean, batch_output))  # type: ignore[arg-type]
-
             self._record_logit_stats_final(final_lps)
 
         pbar.close()
@@ -312,10 +311,12 @@ class Eval:
         if self.dist.primary:
             with (root_dir / "batches.jsonl").open("w") as f:
                 json.dump(batches, f)
-
+            with (root_dir / "std.json").open("w") as f:
+                json.dump(std, f)
             with (root_dir / "aggregate_metrics.json").open("w") as f:
                 json.dump(agg, f)
 
             if self.record_logit_stats:
                 with (root_dir / "logit_stats.json").open("w") as f:
                     json.dump(logit_stats, f)
+            

@@ -14,8 +14,8 @@ import torch as th
 import transformers as tr
 from torch import nn
 from transformers import models
+import tuned_lens.model_patches.rwkv_v5.hf as hf
 
-##Hacky way to have a mamba model
 from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel
 
 
@@ -119,7 +119,8 @@ def get_final_norm(model: Model) -> Norm:
         final_layer_norm = base_model.norm
     elif isinstance(base_model, MambaLMHeadModel):
        final_layer_norm = base_model.backbone.norm_f
-    elif isinstance(base_model, models.rwkv.modeling_rwkv.RwkvModel):
+    elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,
+                    hf.Rwkv5Model)):
         final_layer_norm = base_model.ln_out
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
@@ -168,7 +169,7 @@ def get_transformer_layers(model: Model) -> tuple[str, th.nn.ModuleList]:
         path_to_layers += ["layers"]
     elif isinstance(base_model, MambaLMHeadModel):
        path_to_layers += ["backbone.layers"]
-    elif isinstance(base_model, models.rwkv.modeling_rwkv.RwkvModel):
+    elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,hf.Rwkv5Model)):
         path_to_layers += ["blocks"] 
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
