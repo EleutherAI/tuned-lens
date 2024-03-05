@@ -19,6 +19,7 @@ import tuned_lens.model_patches.rwkv_v5.hf as hf
 from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel
 
 
+
 def get_value_for_key(obj: Any, key: str) -> Any:
     """Get a value using `__getitem__` if `key` is numeric and `getattr` otherwise."""
     return obj[int(key)] if key.isdigit() else getattr(obj, key)
@@ -73,6 +74,13 @@ def get_unembedding_matrix(model: Model) -> nn.Linear:
     """The final linear tranformation from the model hidden state to the output."""
     if isinstance(model, tr.PreTrainedModel):
         unembed = model.get_output_embeddings()
+        if "StripedHyena" in model.name_or_path:
+            linear = nn.Linear(
+                in_features=model.config.hidden_size,
+                out_features=model.config.vocab_size,dtype=model.dtype
+            )
+            linear.bias.data = model.backbone.unembed._parameters["weight"]
+            return linear
         if not isinstance(unembed, nn.Linear):
             raise ValueError("We currently only support linear unemebdings")
         return unembed
@@ -122,6 +130,8 @@ def get_final_norm(model: Model) -> Norm:
     elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,
                     hf.Rwkv5Model)):
         final_layer_norm = base_model.ln_out
+    elif "StripedHyena" in model.name_or_path :
+        final_layer_norm = base_model.backbone.norm
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
 
@@ -171,6 +181,8 @@ def get_transformer_layers(model: Model) -> tuple[str, th.nn.ModuleList]:
        path_to_layers += ["backbone.layers"]
     elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,hf.Rwkv5Model)):
         path_to_layers += ["blocks"] 
+    elif "StripedHyena" in model.name_or_path :
+        path_to_layers += ["backbone.blocks"]
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
 

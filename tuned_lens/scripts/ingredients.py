@@ -176,6 +176,7 @@ class Model:
             raise ValueError(f"Unknown precision: {self.precision}") from e
 
         with handle_name_conflicts():
+            
             if "mamba" in self.name :
                 from tuned_lens.model_patches.mamba_model import PreMambaConfig, MambaModel, MambaTokenizer
                 AutoConfig.register("mamba", PreMambaConfig)
@@ -184,6 +185,15 @@ class Model:
             if "rwkv-5" in self.name :
                 model = AutoModelForCausalLM.from_pretrained(self.name, trust_remote_code=True).to(th.float32)
                 tokenizer = AutoTokenizer.from_pretrained(self.name, trust_remote_code=True)
+                return model, tokenizer
+            if "Striped" in self.name :
+                config = AutoConfig.from_pretrained(self.name, trust_remote_code=True)
+                config.num_hidden_layers = config.num_layers
+                model = AutoModelForCausalLM.from_pretrained(
+                    self.name, config=config, trust_remote_code=True,torch_dtype=dtype,device_map={"": device} if device is not None else None
+                )
+                tokenizer = AutoTokenizer.from_pretrained(self.name)
+                
                 return model, tokenizer
             model = AutoModelForCausalLM.from_pretrained(  # type: ignore
                 self.name,
