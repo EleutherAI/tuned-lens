@@ -141,6 +141,7 @@ class Model:
                 use_fast=not self.slow_tokenizer,
                 tokenizer_type=self.tokenizer_type,
                 local_files_only=must_use_cache,
+                trust_remote_code=True,
             )
 
         assert isinstance(tokenizer, PreTrainedTokenizerBase)
@@ -203,6 +204,7 @@ class Model:
                 revision=self.revision,
                 torch_dtype=dtype,
                 local_files_only=must_use_cache,
+                trust_remote_code=True
             )
 
         assert isinstance(model, PreTrainedModel)

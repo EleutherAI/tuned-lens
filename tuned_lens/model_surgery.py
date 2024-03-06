@@ -127,8 +127,7 @@ def get_final_norm(model: Model) -> Norm:
         final_layer_norm = base_model.norm
     elif isinstance(base_model, MambaLMHeadModel):
        final_layer_norm = base_model.backbone.norm_f
-    elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,
-                    hf.Rwkv5Model)):
+    elif "RWKV" in model.name_or_path.upper():
         final_layer_norm = base_model.ln_out
     elif "StripedHyena" in model.name_or_path :
         final_layer_norm = base_model.backbone.norm
