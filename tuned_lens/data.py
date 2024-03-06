@@ -1,5 +1,6 @@
 """Tools for tokenizing and manipulating text datasets."""
 import math
+import sys
 from multiprocessing import cpu_count
 from typing import TypeVar, Union
 
@@ -56,29 +57,28 @@ def chunk_and_tokenize(
             return_overflowing_tokens=True,
             truncation=True,
         )
+        ids = output["input_ids"]
 
         if overflow := output.pop("overflowing_tokens", None):
             # Slow Tokenizers return unnested lists of ints
-            assert isinstance(output["input_ids"][0], int)
+            assert isinstance(ids[0], int)
 
             # Chunk the overflow into batches of size `chunk_size`
-            chunks = [output["input_ids"]] + [
+            ids = [output["input_ids"]] + [
                 overflow[i * chunk_size : (i + 1) * chunk_size]
                 for i in range(math.ceil(len(overflow) / chunk_size))
             ]
-            output = {"input_ids": chunks}
-
-        total_tokens = sum(len(ids) for ids in output["input_ids"])
+    
+        elif isinstance(ids[0], int):
+            ids = [
+                ids[i * chunk_size : (i + 1) * chunk_size]
+                for i in range(math.ceil(len(ids) / chunk_size))
+            ]
+        
+        output = {"input_ids": ids}
         total_bytes = len(joined_text.encode("utf-8"))
 
-        if not return_final_batch:
-            # We know that the last sample will almost always be less than the max
-            # number of tokens, and we don't want to pad, so we just drop it.
-            output = {k: v[:-1] for k, v in output.items()}
-
-        output_batch_size = len(output["input_ids"])
-
-        if output_batch_size == 0:
+        if not ids:
             raise ValueError(
                 "Not enough data to create a single batch complete batch."
                 " Either allow the final batch to be returned,"
@@ -86,15 +86,22 @@ def chunk_and_tokenize(
             )
 
         # We need to output this in order to compute the number of bits per byte
-        div, rem = divmod(total_tokens, output_batch_size)
-        output["length"] = [div] * output_batch_size
-        output["length"][-1] += rem
+        output["length"] = [len(chunk) for chunk in ids]
 
-        div, rem = divmod(total_bytes, output_batch_size)
-        output["bytes"] = [div] * output_batch_size
-        output["bytes"][-1] += rem
+        div, rem = divmod(total_bytes, len(ids))
+        output["bytes"] = [div for _ in ids]
+        if rem:
+            output["bytes"][-1] = rem
         
+        if not return_final_batch:
+            # We know that the last sample will almost always be less than the max
+            # number of tokens, and we don't want to pad, so we just drop it.
+            output = {k: v[:-1] for k, v in output.items()}
+
         return output
+
+    # Stupid hack needed for RWKV v5 tokenizer
+    sys.setrecursionlimit(10_000)
 
     data = data.map(
         _tokenize_fn,
