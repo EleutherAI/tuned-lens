@@ -18,9 +18,13 @@ from transformers import (
     PreTrainedTokenizer,
     PreTrainedTokenizerFast,
 )
+from transformers.models.gpt2.tokenization_gpt2_fast import (
+    GPT2Tokenizer,
+    GPT2TokenizerFast,
+)
 
 from ..nn.lenses import Lens
-from .token_formatter import TokenFormatter
+from .token_formatter import TokenFormatter, TokenFormatterUTF8
 from .trajectory_plotting import TrajectoryLabels, TrajectoryStatistic
 
 Tokenizer = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
@@ -114,6 +118,14 @@ class PredictionTrajectory:
     """(..., seq_len)"""
 
     tokenizer: Optional[Tokenizer] = None
+
+    @property
+    def default_token_formatter(self) -> TokenFormatter:
+        """The default token formatter for the trajectory."""
+        if type(self.tokenizer) in [GPT2Tokenizer, GPT2TokenizerFast]:
+            return TokenFormatterUTF8()
+
+        return TokenFormatter()
 
     def __post_init__(self) -> None:
         """Validate class invariants."""
@@ -314,7 +326,7 @@ class PredictionTrajectory:
             return None
 
         if token_formatter is None:
-            token_formatter = TokenFormatter()
+            token_formatter = self.default_token_formatter
 
         return _consolidate_labels_from_batch(
             tokens=token_formatter.vectorized_format(
@@ -415,7 +427,7 @@ class PredictionTrajectory:
             return None
 
         if formatter is None:
-            formatter = TokenFormatter()
+            formatter = self.default_token_formatter
 
         topk_tokens, topk_probs = self._get_topk_tokens_and_values(
             k=topk, sort_by=self.log_probs, values=self.probs
@@ -469,7 +481,7 @@ class PredictionTrajectory:
             return None
 
         if formatter is None:
-            formatter = TokenFormatter()
+            formatter = self.default_token_formatter
 
         deltas = other.probs - self.probs
 

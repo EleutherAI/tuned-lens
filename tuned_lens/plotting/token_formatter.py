@@ -4,6 +4,8 @@ from typing import Optional
 
 import numpy as np
 
+from .utf8_utils import gpt2_token_to_bytes, safe_decode
+
 
 @dataclass
 class TokenFormatter:
@@ -38,3 +40,29 @@ class TokenFormatter:
         return token_repr[: self.max_string_len] + " " * (
             self.max_string_len - len(token_repr)
         )
+
+
+@dataclass
+class TokenFormatterUTF8(TokenFormatter):
+    """Format tokens without GPT-glyphs."""
+
+    def format(self, token: str) -> str:
+        """Format a token for display in a plot."""
+        if not isinstance(token, str):
+            return "<unk>"
+
+        token_repr = safe_decode(
+            gpt2_token_to_bytes(token),
+            mode=None,
+            replacements={
+                "\n": self.newline_replacement,
+                " ": self.whitespace_replacement,
+            },
+            forbidden_trailing=[self.ellipsis],
+        )
+
+        if self.max_string_len is not None and len(token_repr) > self.max_string_len:
+            token_repr = (
+                token_repr[: self.max_string_len - len(self.ellipsis)] + self.ellipsis
+            )
+        return token_repr

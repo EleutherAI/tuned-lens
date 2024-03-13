@@ -20,6 +20,7 @@ dependencies = [
     "simple-parsing>=0.1.4",
     "flatten-dict>=0.4.1",
     "wandb>=0.15.0",
+    "unicodedata2",
 ]
 version = "0.2.0"
 
