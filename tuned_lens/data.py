@@ -68,13 +68,13 @@ def chunk_and_tokenize(
                 overflow[i * chunk_size : (i + 1) * chunk_size]
                 for i in range(math.ceil(len(overflow) / chunk_size))
             ]
-    
+
         elif isinstance(ids[0], int):
             ids = [
                 ids[i * chunk_size : (i + 1) * chunk_size]
                 for i in range(math.ceil(len(ids) / chunk_size))
             ]
-        
+
         output = {"input_ids": ids}
         total_bytes = len(joined_text.encode("utf-8"))
 
@@ -92,7 +92,7 @@ def chunk_and_tokenize(
         output["bytes"] = [div for _ in ids]
         if rem:
             output["bytes"][-1] = rem
-        
+
         if not return_final_batch:
             # We know that the last sample will almost always be less than the max
             # number of tokens, and we don't want to pad, so we just drop it.

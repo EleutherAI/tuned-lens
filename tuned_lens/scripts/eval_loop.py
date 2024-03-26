@@ -319,4 +319,3 @@ class Eval:
             if self.record_logit_stats:
                 with (root_dir / "logit_stats.json").open("w") as f:
                     json.dump(logit_stats, f)
-            

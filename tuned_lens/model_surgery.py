@@ -14,10 +14,8 @@ import torch as th
 import transformers as tr
 from torch import nn
 from transformers import models
+
 import tuned_lens.model_patches.rwkv_v5.hf as hf
-
-from mamba_ssm.models.mixer_seq_simple import MambaLMHeadModel
-
 
 
 def get_value_for_key(obj: Any, key: str) -> Any:
@@ -77,7 +75,8 @@ def get_unembedding_matrix(model: Model) -> nn.Linear:
         if "StripedHyena" in model.name_or_path:
             linear = nn.Linear(
                 in_features=model.config.hidden_size,
-                out_features=model.config.vocab_size,dtype=model.dtype
+                out_features=model.config.vocab_size,
+                dtype=model.dtype,
             )
             linear.bias.data = model.backbone.unembed._parameters["weight"]
             return linear
@@ -125,11 +124,11 @@ def get_final_norm(model: Model) -> Norm:
         final_layer_norm = base_model.ln_f
     elif isinstance(base_model, models.llama.modeling_llama.LlamaModel):
         final_layer_norm = base_model.norm
-    elif isinstance(base_model, MambaLMHeadModel):
-       final_layer_norm = base_model.backbone.norm_f
+    elif isinstance(base_model, models.mamba.modeling_mamba.MambaModel):
+        final_layer_norm = base_model.backbone.norm_f
     elif "RWKV" in model.name_or_path.upper():
         final_layer_norm = base_model.ln_out
-    elif "StripedHyena" in model.name_or_path :
+    elif "StripedHyena" in model.name_or_path:
         final_layer_norm = base_model.backbone.norm
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
@@ -176,11 +175,11 @@ def get_transformer_layers(model: Model) -> tuple[str, th.nn.ModuleList]:
         path_to_layers += ["h"]
     elif isinstance(base_model, models.llama.modeling_llama.LlamaModel):
         path_to_layers += ["layers"]
-    elif isinstance(base_model, MambaLMHeadModel):
-       path_to_layers += ["backbone.layers"]
-    elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel,hf.Rwkv5Model)):
-        path_to_layers += ["blocks"] 
-    elif "StripedHyena" in model.name_or_path :
+    elif isinstance(base_model, models.mamba.modeling_mamba.MambaModel):
+        path_to_layers += ["backbone.layers"]
+    elif isinstance(base_model, (models.rwkv.modeling_rwkv.RwkvModel, hf.Rwkv5Model)):
+        path_to_layers += ["blocks"]
+    elif "StripedHyena" in model.name_or_path:
         path_to_layers += ["backbone.blocks"]
     else:
         raise NotImplementedError(f"Unknown model type {type(base_model)}")
